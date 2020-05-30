@@ -1,8 +1,5 @@
 const mongoose = require("mongoose");
-
-require("dotenv").config();
-
-const db = process.env.DB_URL || "mongodb://localhost:27017/movieapp";
+const db = "mongodb://localhost:27017/movieapp";
 
 const connectDB = async () => {
   try {
