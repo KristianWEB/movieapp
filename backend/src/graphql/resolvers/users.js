@@ -12,11 +12,9 @@ module.exports = {
       if (!user) {
         throw new AuthenticationError("Unauthenticated!");
       }
-
       return {
+        ...user,
         token,
-        ...user._doc,
-        id: user._id,
       };
     },
   },

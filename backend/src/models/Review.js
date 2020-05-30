@@ -12,6 +12,8 @@ const ReviewSchema = new Schema({
     required: true,
     ref: "Movie",
   },
+  upvotes: { type: Number, default: 0 },
+  downvotes: { type: Number, default: 0 },
 });
 
 const Review = model("Review", ReviewSchema);

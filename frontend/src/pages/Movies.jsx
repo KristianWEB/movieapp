@@ -18,7 +18,13 @@ const Movies = () => {
       >
         <Title>Movies app</Title>
       </Row>
-      <Row gutter={40} justify="center">
+      <Row
+        gutter={40}
+        justify="center"
+        style={{
+          margin: "0",
+        }}
+      >
         {moviesData &&
           moviesData.getMovies.map((movie) => (
             <Col span={3} key={movie.id}>

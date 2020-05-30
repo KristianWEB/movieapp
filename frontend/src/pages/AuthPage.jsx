@@ -1,13 +1,14 @@
 import React, { useState } from "react";
-import { useMutation } from "@apollo/react-hooks";
-import { LOGIN } from "../utils/queries";
+import { useQuery, useMutation } from "@apollo/react-hooks";
+import { LOGIN, LOAD_ADMIN } from "../utils/queries";
 import { Form, Input, Button } from "antd";
 import "../App.less";
-import { useHistory } from "react-router-dom";
+import { useHistory, Redirect } from "react-router-dom";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { data: adminData, loading } = useQuery(LOAD_ADMIN);
 
   const history = useHistory();
 
@@ -22,9 +23,13 @@ const LoginPage = () => {
       password,
     },
   });
+  if (!loading) {
+    if (adminData && adminData.loadAdmin) {
+      return <Redirect to="/admin/dashboard" />;
+    }
+  }
+
   const handleSubmit = (e) => {
-    console.log(email);
-    console.log(password);
     login();
   };
 

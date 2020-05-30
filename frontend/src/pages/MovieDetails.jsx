@@ -1,19 +1,68 @@
-import React from "react";
-import { useQuery } from "@apollo/react-hooks";
-import { Row, Rate, Card, Col, Typography, Button } from "antd";
-import { GET_SINGLE_MOVIE, GET_REVIEWS_BY_MOVIE } from "../utils/queries";
+import React, { useState } from "react";
+import { useQuery, useMutation } from "@apollo/react-hooks";
+import {
+  Row,
+  Rate,
+  Card,
+  Col,
+  Typography,
+  Button,
+  Modal,
+  Form,
+  Input,
+  message,
+} from "antd";
+import {
+  GET_SINGLE_MOVIE,
+  GET_REVIEWS_BY_MOVIE,
+  CREATE_REVIEW,
+  UPVOTE_REVIEW,
+  DOWNVOTE_REVIEW,
+} from "../utils/queries";
 import "../App.less";
 import { useParams } from "react-router-dom";
+import { ReactComponent as ThumbsUp } from "../assets/thumbs-up.svg";
+import { ReactComponent as ThumbsDown } from "../assets/thumbs-down.svg";
 const { Title } = Typography;
 
 const MovieDetails = () => {
   const { movieId } = useParams();
+  const [showModal, setShowModal] = useState(false);
+  const [reviewState, setReviewState] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    body: "",
+    stars: null,
+  });
+
+  const onChange = (e) =>
+    setReviewState({ ...reviewState, [e.target.name]: e.target.value });
 
   const { data: movieData } = useQuery(GET_SINGLE_MOVIE, {
     variables: {
       movieId,
     },
   });
+  const [createReview] = useMutation(CREATE_REVIEW, {
+    variables: {
+      firstName: reviewState.firstName,
+      lastName: reviewState.lastName,
+      email: reviewState.email,
+      body: reviewState.body,
+      stars: reviewState.stars,
+      movieId,
+    },
+    onError: () => message.error("Something went wrong, please try again."),
+    onCompleted: () =>
+      message.success(
+        "Review created successfully and it is now being reviewed by an administrator"
+      ),
+  });
+  const [upvoteReview] = useMutation(UPVOTE_REVIEW);
+
+  const [downvoteReview] = useMutation(DOWNVOTE_REVIEW);
+
   const { data: reviewsData } = useQuery(GET_REVIEWS_BY_MOVIE, {
     variables: {
       movieId,
@@ -25,14 +74,18 @@ const MovieDetails = () => {
   }
 
   const { getSingleMovie: movie } = movieData;
+  const handleSubmit = () => {
+    createReview();
+    setShowModal(false);
+  };
 
   return (
     <>
       <Row
         justify="center"
         style={{
-          marginTop: "15px",
-          marginBottom: "50px",
+          paddingTop: "50px",
+          marginBottom: "60px",
         }}
       >
         <Title>Movie details</Title>
@@ -42,7 +95,21 @@ const MovieDetails = () => {
           <>
             <Col span={12}>
               <div style={{ display: "flex", flexDirection: "column" }}>
-                <h1 style={{ marginBottom: "5px" }}>{movie.title}</h1>
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <h1 style={{ marginBottom: "5px" }}>{movie.title}</h1>
+                  <h2
+                    style={{
+                      marginBottom: "5px",
+                      marginLeft: "20px",
+                      backgroundColor: "#1890ff",
+                      padding: "0 5px",
+                      borderRadius: "4px",
+                      color: "#fff",
+                    }}
+                  >
+                    {movie.rating}
+                  </h2>
+                </div>
                 <div style={{ display: "flex", flexWrap: "wrap" }}>
                   <p className="movieDetails-paragraph">
                     Year:{" "}
@@ -107,17 +174,88 @@ const MovieDetails = () => {
                           <div
                             style={{
                               display: "flex",
-                              justifyContent: "flex-end",
-                              marginTop: "20px",
+                              justifyContent: "space-between",
+                              alignItems: "center",
                             }}
                           >
-                            <Button
-                              type="primary"
-                              style={{ marginRight: "10px" }}
+                            <div
+                              style={{
+                                display: "flex",
+                              }}
                             >
-                              Upvote
-                            </Button>
-                            <Button type="dashed">Downvote</Button>
+                              <h3
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  marginTop: "20px",
+                                  lineHeight: "1",
+                                  marginBottom: "0",
+                                  marginRight: "15px",
+                                }}
+                              >
+                                <ThumbsUp
+                                  width={20}
+                                  height={20}
+                                  fill="#444"
+                                  style={{
+                                    marginRight: "5px",
+                                  }}
+                                />
+                                {review.upvotes}
+                              </h3>
+                              <h3
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  marginTop: "20px",
+                                  lineHeight: "1",
+                                  marginBottom: "0",
+                                }}
+                              >
+                                <ThumbsDown
+                                  width={20}
+                                  height={20}
+                                  fill="#444"
+                                  style={{
+                                    marginRight: "5px",
+                                  }}
+                                />
+                                {review.downvotes}
+                              </h3>
+                            </div>
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "flex-end",
+                                marginTop: "20px",
+                              }}
+                            >
+                              <Button
+                                type="primary"
+                                style={{ marginRight: "10px" }}
+                                onClick={() =>
+                                  upvoteReview({
+                                    variables: {
+                                      reviewId: review.id,
+                                    },
+                                  })
+                                }
+                              >
+                                Upvote
+                              </Button>
+                              <Button
+                                type="dashed"
+                                onClick={() =>
+                                  downvoteReview({
+                                    variables: {
+                                      reviewId: review.id,
+                                    },
+                                  })
+                                }
+                              >
+                                Downvote
+                              </Button>
+                            </div>
                           </div>
                         </Card>
                       )
@@ -125,11 +263,125 @@ const MovieDetails = () => {
               </div>
             </Col>
             <Col col={6}>
-              <img alt={movie.title} src={movie.poster} />
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <img alt={movie.title} src={movie.poster} />
+                <Button
+                  type="primary"
+                  style={{
+                    marginTop: "20px",
+                  }}
+                  onClick={() => setShowModal(true)}
+                >
+                  Create a review
+                </Button>
+              </div>
             </Col>
           </>
         )}
       </Row>
+      <Modal
+        visible={showModal}
+        onCancel={() => setShowModal(false)}
+        footer={null}
+      >
+        <Form
+          style={{
+            width: "100%",
+            marginTop: "30px",
+          }}
+          onFinish={handleSubmit}
+        >
+          <Form.Item
+            label="First name"
+            name="firstName"
+            rules={[
+              {
+                required: true,
+                message: "Please enter your first name!",
+              },
+            ]}
+          >
+            <Input
+              placeholder="Kristian"
+              name="firstName"
+              onChange={onChange}
+            />
+          </Form.Item>
+          <Form.Item
+            label="Last name"
+            name="lastName"
+            rules={[
+              {
+                required: true,
+                message: "Please enter your last name!",
+              },
+            ]}
+          >
+            <Input placeholder="Ivanov" name="lastName" onChange={onChange} />
+          </Form.Item>
+          <Form.Item
+            label="Email"
+            name="email"
+            rules={[
+              {
+                type: "email",
+                required: true,
+                message: "Please enter your email!",
+              },
+            ]}
+          >
+            <Input
+              placeholder="kristian@kristian.com"
+              name="email"
+              onChange={onChange}
+            />
+          </Form.Item>
+          <Form.Item
+            label="Review"
+            name="body"
+            rules={[
+              {
+                min: 10,
+                required: true,
+                message: "Please enter your review!",
+              },
+            ]}
+          >
+            <Input.TextArea
+              placeholder="Your review"
+              name="body"
+              onChange={onChange}
+            />
+          </Form.Item>
+          <Form.Item
+            label="Rate"
+            name="rate"
+            rules={[
+              {
+                required: true,
+                message: "Please enter your stars!",
+              },
+            ]}
+          >
+            <Rate
+              onChange={(value) =>
+                setReviewState({ ...reviewState, stars: value })
+              }
+            />
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" htmlType="submit">
+              Create review
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </>
   );
 };

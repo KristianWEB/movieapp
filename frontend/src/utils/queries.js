@@ -52,6 +52,8 @@ export const GET_REVIEWS_BY_MOVIE = gql`
         id
         title
       }
+      upvotes
+      downvotes
     }
   }
 `;
@@ -60,6 +62,7 @@ export const GET_SINGLE_MOVIE = gql`
   query getSingleMovie($movieId: ID!) {
     getSingleMovie(movieId: $movieId) {
       id
+      rating
       title
       year
       released
@@ -119,6 +122,67 @@ export const DELETE_REVIEW = gql`
         id
         title
       }
+    }
+  }
+`;
+
+export const CREATE_REVIEW = gql`
+  mutation createReview(
+    $firstName: String!
+    $lastName: String!
+    $email: String!
+    $stars: Int!
+    $body: String!
+    $movieId: ID!
+  ) {
+    createReview(
+      reviewInput: {
+        firstName: $firstName
+        lastName: $lastName
+        email: $email
+        stars: $stars
+        body: $body
+        movieId: $movieId
+      }
+    ) {
+      id
+      firstName
+      lastName
+      email
+      stars
+      body
+      approved
+      movieId {
+        id
+        title
+      }
+    }
+  }
+`;
+
+export const UPVOTE_REVIEW = gql`
+  mutation upvoteReview($reviewId: ID!) {
+    upvoteReview(reviewId: $reviewId) {
+      id
+      upvotes
+    }
+  }
+`;
+
+export const DOWNVOTE_REVIEW = gql`
+  mutation downvoteReview($reviewId: ID!) {
+    downvoteReview(reviewId: $reviewId) {
+      id
+      downvotes
+    }
+  }
+`;
+
+export const LOAD_ADMIN = gql`
+  {
+    loadAdmin {
+      email
+      id
     }
   }
 `;

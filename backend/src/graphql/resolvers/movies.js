@@ -13,6 +13,7 @@ module.exports = {
     getSingleMovie: async (_, { movieId }) => {
       try {
         const movie = await Movie.findById(movieId);
+
         return movie;
       } catch (err) {
         throw new Error(err);

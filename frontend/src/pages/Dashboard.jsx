@@ -1,11 +1,20 @@
 import React from "react";
 import { useQuery, useMutation } from "@apollo/react-hooks";
+import { Redirect } from "react-router-dom";
 import { Row, Card, Rate, Button } from "antd";
 import "../App.less";
-import { GET_REVIEWS, APPROVE_REVIEW, DELETE_REVIEW } from "../utils/queries";
+import {
+  GET_REVIEWS,
+  APPROVE_REVIEW,
+  DELETE_REVIEW,
+  LOAD_ADMIN,
+} from "../utils/queries";
 
 const Dashboard = () => {
-  const { data: reviewsData } = useQuery(GET_REVIEWS);
+  const { data: adminData, loading } = useQuery(LOAD_ADMIN);
+  const { data: reviewsData } = useQuery(GET_REVIEWS, {
+    fetchPolicy: "network-only",
+  });
   const [approveReview] = useMutation(APPROVE_REVIEW);
   const [deleteReview] = useMutation(DELETE_REVIEW, {
     update: (proxy, { data: { deleteReview } }) => {
@@ -21,6 +30,11 @@ const Dashboard = () => {
       });
     },
   });
+  if (!loading) {
+    if (!adminData) {
+      return <Redirect to="/admin/login" />;
+    }
+  }
 
   return (
     <Row
@@ -28,8 +42,8 @@ const Dashboard = () => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
+        paddingTop: "40px",
         flexDirection: "column",
-        marginTop: "30px",
       }}
     >
       {reviewsData &&

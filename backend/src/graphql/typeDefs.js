@@ -13,7 +13,7 @@ module.exports = gql`
     email: String!
     stars: Int!
     body: String!
-    movieId: String!
+    movieId: ID!
   }
 
   type MovieValue {
@@ -30,6 +30,8 @@ module.exports = gql`
     body: String!
     approved: Boolean!
     movieId: MovieValue!
+    upvotes: Int!
+    downvotes: Int!
   }
 
   input MovieInput {
@@ -64,6 +66,7 @@ module.exports = gql`
     awards: String!
     poster: String!
     reviews: [Review]!
+    rating: Float
   }
 
   type Query {
@@ -80,6 +83,8 @@ module.exports = gql`
     createReview(reviewInput: ReviewInput): Review!
     createMovie(movieInput: MovieInput): Movie!
     approveReview(reviewId: ID!): Review!
+    upvoteReview(reviewId: ID!): Review!
+    downvoteReview(reviewId: ID!): Review!
     deleteReview(reviewId: ID!): Review!
   }
 `;
