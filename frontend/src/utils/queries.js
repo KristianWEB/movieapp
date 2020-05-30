@@ -112,16 +112,6 @@ export const DELETE_REVIEW = gql`
   mutation deleteReview($reviewId: ID!) {
     deleteReview(reviewId: $reviewId) {
       id
-      firstName
-      lastName
-      email
-      stars
-      body
-      approved
-      movieId {
-        id
-        title
-      }
     }
   }
 `;
